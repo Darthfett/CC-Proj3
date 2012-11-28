@@ -6,6 +6,7 @@
 
 #include "shared.h"
 #include "symtab.h"
+#include "intermediate_rep.h"
 
 int error_flag = 0;
 
@@ -29,6 +30,7 @@ extern void yyparse();
 
 int main() {
     symtab_init();
+    init_intermediate_rep();
 
     /* begin parsing */
     yyparse();

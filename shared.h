@@ -428,26 +428,34 @@ struct program_t {
  * ================================================================
  */
 
+// Code type
+#define CODE_ASSIGNMENT 100
+#define CODE_BRANCH 101
+#define CODE_JUMP 102
+
 // Operation codes (starting with arbitrary numbers)
-#define OP_ASSIGNMENT 37
+#define OP_ASSIGNMENT 1
 
-#define OP_PLUS 38
-#define OP_MINUS 39
-#define OP_STAR 48
-#define OP_SLASH 49
-#define OP_MOD 50
+#define OP_PUSH_STACK 2
+#define OP_POP_STACK 3
 
-#define OP_EQUAL 40
-#define OP_NOTEQUAL 41
-#define OP_LT 42
-#define OP_GT 43
-#define OP_LE 44
-#define OP_GE 45
+#define OP_NOT 4
 
-#define OP_NOT 46
+#define OP_OR 10
+#define OP_AND 11
 
-#define OP_OR 47
-#define OP_AND 51
+#define OP_PLUS 12
+#define OP_MINUS 13
+#define OP_STAR 14
+#define OP_SLASH 15
+#define OP_MOD 16
+
+#define OP_EQUAL 17
+#define OP_NOTEQUAL 18
+#define OP_LT 19
+#define OP_GT 20
+#define OP_LE 21
+#define OP_GE 22
 
 /* ----------------------------------------------------------------
  * Function declarations

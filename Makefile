@@ -12,7 +12,7 @@ YACCFLAGS = -d -y -v
 
 OBJECTS = \
 	main.o \
-	symtab.o shared.o 
+	symtab.o shared.o intermediate_rep.o
 
 all:    yacc lex $(OBJECTS) tests_prepare
 	$(CC) -o $(BINARY) $(CFLAGS) y.tab.c lex.yy.c $(OBJECTS)
