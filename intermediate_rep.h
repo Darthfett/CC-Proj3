@@ -4,6 +4,8 @@
 
 /* Structure definitions */
 
+struct block_t;
+
 struct code_t {
     int type;
 
@@ -13,11 +15,18 @@ struct code_t {
     int op2;
 
     struct code_t *next;
+    struct block_t *next_b1;
+    struct block_t *next_b2;
 };
 
 struct block_t {
     struct code_t *first;
     struct code_t *last;
+};
+
+struct cfg_t {
+    struct block_t *first;
+    struct block_t *last;
 };
 
 /* End structure definitions */

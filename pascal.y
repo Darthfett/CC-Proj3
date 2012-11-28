@@ -167,6 +167,7 @@ identifier_list : identifier_list comma identifier
         $$ = (struct identifier_list_t*) malloc(sizeof(struct identifier_list_t));
         $$->next = $1;
         $$->id = $3;
+	$$->offset = $1->offset + 1;
         }
  | identifier
         {
@@ -174,7 +175,8 @@ identifier_list : identifier_list comma identifier
         $$ = (struct identifier_list_t*) malloc(sizeof(struct identifier_list_t));
         $$->next = NULL;
         $$->id = $1;
-        }
+        $$->offset = 0;
+	}
  ;
 
 class_list : class_list class_identification PBEGIN class_block END
@@ -422,6 +424,19 @@ function_declaration : function_identification semicolon function_block
         $$->fb = $3;
         $$->line_number = line_number;
 
+	struct formal_parameter_section_list_t *fhl = $1->fpsl;
+	struct variable_declaration_list_t *fb = $2->vdl;
+	
+	struct identifier_list_t *il = $->fpsl->fps->il;
+
+	int i = 1;
+	
+	// set the offset for the parameters
+	while (il != NULL)
+	{
+		il.offset = i;
+		i += 1;
+		il = il->next;
 	}
  ;
 
@@ -466,6 +481,7 @@ function_block : variable_declaration_part statement_part
 
         $$->vdl = $1;
         $$->ss = $2;
+	$$->size = $1->size;
 	}
 ;
 
