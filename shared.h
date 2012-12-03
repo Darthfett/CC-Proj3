@@ -78,10 +78,10 @@ struct args_t {
 };
 
 
-struct identifier_list_t;
 struct identifier_list_t {
   char *id; 
   struct identifier_list_t *next;
+  int offset;
 };
 
 struct unsigned_number_t;
@@ -123,12 +123,14 @@ struct variable_declaration_t {
   struct identifier_list_t *il;
   struct type_denoter_t *tden;
   int line_number;
+  int size;
 };
 
 struct variable_declaration_list_t;
 struct variable_declaration_list_t {
   struct variable_declaration_t *vd;
-  struct variable_declaration_list_t *next;  
+  struct variable_declaration_list_t *next;
+  int size;
 };
 /* ---------------------------------------------------------------- */
 
@@ -158,9 +160,9 @@ struct function_declaration_t {
   struct function_heading_t *fh;
   struct function_block_t *fb;
   int line_number;
+  int size;
 };
 
-struct func_declaration_list_t;
 struct func_declaration_list_t{
   struct function_declaration_t *fd;
   struct func_declaration_list_t *next;
@@ -410,13 +412,14 @@ struct class_identification_t {
 struct class_block_t{
   struct variable_declaration_list_t *vdl; /* == variable_declaration_part */
   struct func_declaration_list_t *fdl;
-};
+ };
 
 struct class_list_t;
 struct class_list_t {
   struct class_identification_t *ci;
   struct class_block_t *cb;
   struct class_list_t *next;
+  int size;
 };
 
 struct program_t {
