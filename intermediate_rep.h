@@ -1,10 +1,9 @@
-
 #ifndef _INTERMEDIATE_REP_H_
 #define _INTERMEDIATE_REP_H_
 
-const char * const TOP_OF_STACK = "__RESERVED_TOP_OF_STACK";
-const char * const STACK_PTR = "__RESERVED_STACK_PTR";
-const char * const FRAME_PTR = "__RESERVED_FRAME_PTR";
+extern const char * const TOP_OF_TACK;
+extern const char * const STACK_PTR;
+extern const char * const FRAME_PTR;
 
 /* Structure definitions */
 
@@ -13,10 +12,10 @@ struct block_t;
 struct code_t {
     int type;
 
-    char *lhs;
+    const char *lhs;
     int op;
-    char *op1;
-    char *op2;
+    const char *op1;
+    const char *op2;
 
     struct code_t *next;
     struct block_t *next_b1;

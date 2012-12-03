@@ -357,6 +357,7 @@ struct function_block_t{
   struct variable_declaration_list_t *vdl;
   struct statement_sequence_t *ss;
   struct cfg_t *cfg;
+  int size;
 };
 
 struct statement_sequence_t;

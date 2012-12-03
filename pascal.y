@@ -10,7 +10,6 @@
  */
 
 #include "shared.h"
-#include "intermediate_rep.h"
 #include <assert.h>
 
   int yylex(void);
@@ -425,10 +424,14 @@ function_declaration : function_identification semicolon function_block
         $$->fb = $3;
         $$->line_number = line_number;
 
+        /*
+
+        This code is broken, commenting out for now
+
 	struct formal_parameter_section_list_t *fhl = $1->fpsl;
-	struct variable_declaration_list_t *fb = $2->vdl;
+	struct variable_declaration_list_t *fb = $3->vdl;
 	
-	struct identifier_list_t *il = $->fpsl->fps->il;
+	struct identifier_list_t *il = $1->fpsl->fps->il;
 
 	int i = 1;
 	
@@ -439,6 +442,8 @@ function_declaration : function_identification semicolon function_block
 		i += 1;
 		il = il->next;
 	}
+        */
+        }
  ;
 
 function_heading : FUNCTION identifier COLON result_type
@@ -929,11 +934,9 @@ primary : variable_access
         snprintf(buffer, 20, "%d", $1->ui);
 
         struct cfg_t *cfg = (struct cfg_t*) malloc(sizeof(struct cfg_t));
-        struct block_t *block = (struct block_t*) malloc(sizeof(struct block_t));
-        struct code_t *push = push_to_stack(buffer);
+        struct block_t *push = push_to_stack(buffer);
 
-        cfg->first = cfg->last = block;
-        block->first = block->last = push;
+        cfg->first = cfg->last = push;
 
         $$->cfg = cfg;
 	}
@@ -980,7 +983,6 @@ primary : variable_access
         $2->cfg->last->last = inc;
 
         $$->cfg = $2->cfg;
-
 	}
  ;
 
@@ -992,10 +994,11 @@ unsigned_constant : unsigned_number
  ;
 
 unsigned_number : unsigned_integer 
-{
+        {
 	// printf("unsigned_number : unsigned_integer\n");
         $$ = $1;
-};
+        }
+;
 
 unsigned_integer : DIGSEQ
 	{

@@ -1,6 +1,10 @@
 #include "intermediate_rep.h"
 #include "shared.h"
 
+const char * const TOP_OF_STACK = "__RESERVED_TOP_OF_STACK";
+const char * const STACK_PTR = "__RESERVED_STACK_PTR";
+const char * const FRAME_PTR = "__RESERVED_FRAME_PTR";
+
 const int TEMPORARY_COUNT = 3;
 const int TEMPORARY_START = 10;
 
