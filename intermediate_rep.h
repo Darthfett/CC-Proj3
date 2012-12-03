@@ -2,15 +2,19 @@
 #ifndef _INTERMEDIATE_REP_H_
 #define _INTERMEDIATE_REP_H_
 
+const char * const TOP_OF_STACK = "__RESERVED_TOP_OF_STACK";
+const char * const STACK_PTR = "__RESERVED_STACK_PTR";
+const char * const FRAME_PTR = "__RESERVED_FRAME_PTR";
+
 /* Structure definitions */
 
 struct code_t {
     int type;
 
-    int lhs;
+    char *lhs;
     int op;
-    int op1;
-    int op2;
+    char *op1;
+    char *op2;
 
     struct code_t *next;
 };
@@ -24,18 +28,16 @@ struct block_t {
 
 /* Function definitions */
 
-int make_const_id(int const_val);
-
 struct code_t* increment_stack(void);
 struct code_t* decrement_stack(void);
 
-int get_temporary(void);
-void release_temporary(int temporary);
+char *get_temporary(void);
+void release_temporary(char *temporary);
 
-struct block_t* pop_from_stack(int out);
-struct block_t* push_to_stack(int source);
+struct block_t* pop_from_stack(const char * const out);
+struct block_t* push_to_stack(const char * const source);
 
-struct code_t* perform_op(int lhs, int op, int op1, int op2);
+struct code_t* perform_op(const char * const lhs, int op, const char * const op1, const char * const op2);
 
 void init_intermediate_rep(void);
 

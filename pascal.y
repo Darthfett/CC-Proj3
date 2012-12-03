@@ -10,6 +10,7 @@
  */
 
 #include "shared.h"
+#include "intermediate_rep.h"
 #include <assert.h>
 
   int yylex(void);
@@ -886,6 +887,18 @@ primary : variable_access
         $$->type = PRIMARY_T_VARIABLE_ACCESS;
         $$->data.va = $1;
         $$->expr = $1->expr;
+
+        struct code_t *dec = decrement_stack();
+        struct code_t *code = perform_op(STACK_PTR, OP_DEREFERENCE, STACK_PTR, NULL);
+        struct code_t *inc = increment_stack();
+
+        dec->next = code;
+        code->next = inc;
+
+        $1->cfg->last->last->next = dec;
+        $1->cfg->last->last = inc;
+
+        $$->cfg = $1->cfg;
 	}
  | unsigned_constant
 	{
@@ -895,6 +908,18 @@ primary : variable_access
         $$->type = PRIMARY_T_UNSIGNED_CONSTANT;
         $$->data.un = $1;
         $$->expr = $1->expr;
+
+        char *buffer = (char*) malloc(sizeof(char) * 20);
+        snprintf(buffer, 20, "%d", $1->ui);
+
+        struct cfg_t *cfg = (struct cfg_t*) malloc(sizeof(struct cfg_t));
+        struct block_t *block = (struct block_t*) malloc(sizeof(struct block_t));
+        struct code_t *push = push_to_stack(buffer);
+
+        cfg->first = cfg->last = block;
+        block->first = block->last = push;
+
+        $$->cfg = cfg;
 	}
  | function_designator
 	{
@@ -904,6 +929,9 @@ primary : variable_access
         $$->type = PRIMARY_T_FUNCTION_DESIGNATOR;
         $$->data.fd = $1;
         $$->expr = NULL;
+
+        // TODO - how to handle this?
+
 	}
  | LPAREN expression RPAREN
 	{
@@ -913,6 +941,8 @@ primary : variable_access
         $$->type = PRIMARY_T_EXPRESSION;
         $$->data.e = $2;
         $$->expr = $2->expr;
+
+        $$->cfg = $2->cfg;
 	}
  | NOT primary
 	{
@@ -922,6 +952,19 @@ primary : variable_access
         $$->type = PRIMARY_T_PRIMARY;
         $$->data.p.next = $2;
         // TODO: $$->expr
+
+        struct code_t *dec = decrement_stack();
+        struct code_t *code = perform_op(STACK_PTR, OP_NOT, STACK_PTR, NULL);
+        struct code_t *inc = increment_stack();
+
+        dec->next = code;
+        code->next = inc;
+
+        $2->cfg->last->last->next = dec;
+        $2->cfg->last->last = inc;
+
+        $$->cfg = $2->cfg;
+
 	}
  ;
 

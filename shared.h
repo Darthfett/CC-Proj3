@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "intermediate_rep.h"
 
 #define K 1024
 #define MAX_ERROR_SIZE 1 * K
@@ -316,6 +317,7 @@ struct variable_access_t{
 				a verbose description of the data type
 				that is validated */
   struct expression_data_t *expr;
+  struct cfg_t *cfg;
 };
 
 struct object_instantiation_t{
@@ -439,7 +441,9 @@ struct program_t {
 #define OP_PUSH_STACK 2
 #define OP_POP_STACK 3
 
-#define OP_NOT 4
+#define OP_DEREFERENCE 4
+
+#define OP_NOT 8
 
 #define OP_OR 10
 #define OP_AND 11
