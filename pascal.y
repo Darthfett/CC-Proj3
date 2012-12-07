@@ -10,6 +10,7 @@
  */
 
 #include "shared.h"
+#include "intermediate_rep.h"
 #include <assert.h>
 
   int yylex(void);
@@ -809,6 +810,8 @@ expression : simple_expression
         $$->relop = 0;
         $$->se2 = NULL;
         $$->expr = $1->expr;
+
+        $$->cfg = $1->cfg;
 	}
  | simple_expression relop simple_expression
 	{
@@ -818,6 +821,19 @@ expression : simple_expression
         $$->se1 = $1;
         $$->relop = $2;
         $$->se2 = $3;
+
+        // CFG
+        $$->cfg = new_cfg();
+        $$->cfg->first = $1->cfg->first;
+
+        merge_blocks($1->cfg->last, $3->cfg->first);
+
+        // At this point, both ops are on the stack.
+        struct block_t *block = perform_stack_op2($2);
+
+        block = merge_blocks($3->cfg->last, block);
+
+        $$->cfg->last = block;
 	}
  ;
 
@@ -830,6 +846,8 @@ simple_expression : term
         $$->addop = 0;
         $$->expr = $1->expr;
         $$->next = NULL;
+
+        $$->cfg = $1->cfg;
 	}
  | simple_expression addop term
 	{
@@ -839,6 +857,19 @@ simple_expression : term
         $$->t = $3;
         $$->addop = $2;
         $$->next = $1;
+
+        // CFG
+        $$->cfg = new_cfg();
+        $$->cfg->first = $1->cfg->first;
+
+        merge_blocks($1->cfg->last, $3->cfg->first);
+
+        // At this point, simple_expression and term are on the stack.
+        struct block_t *block = perform_stack_op2($2);
+
+        block = merge_blocks($3->cfg->last, block);
+
+        $$->cfg->last = block;
 	}
  ;
 
@@ -851,6 +882,8 @@ term : factor
         $$->mulop = 0;
         $$->expr = $1->expr;
         $$->next = NULL;
+
+        $$->cfg = $1->cfg;
 	}
  | term mulop factor
 	{
@@ -860,6 +893,18 @@ term : factor
         $$->f = $3;
         $$->mulop = $2;
         $$->next = $1;
+
+        $$->cfg = new_cfg();
+        $$->cfg->first = $1->cfg->first;
+
+        merge_blocks($1->cfg->last, $3->cfg->first);
+
+        // At this point, term and factor are on the stack.
+        struct block_t *block = perform_stack_op2($2);
+
+        block = merge_blocks($3->cfg->last, block);
+
+        $$->cfg->last = block;
 	}
  ;
 
@@ -888,6 +933,13 @@ factor : sign factor
         $$->data.f.sign = $1;
         $$->data.f.next = $2;
         // TODO: $$->expr
+
+        if (*$1 == OP_MINUS) {
+
+            struct block_t *negate = perform_stack_op1(OP_NEGATE);
+            $2->cfg->last = merge_blocks($2->cfg->last, negate);
+        }
+        $$->cfg = $2->cfg;
 	}
  | primary 
 	{
@@ -897,6 +949,10 @@ factor : sign factor
         $$->type = FACTOR_T_PRIMARY;
         $$->data.p = $1;
         $$->expr = $1->expr;
+
+        // Keep existing cfg
+
+        $$->cfg = $1->cfg;
 	}
  ;
 
@@ -909,16 +965,10 @@ primary : variable_access
         $$->data.va = $1;
         $$->expr = $1->expr;
 
-        struct code_t *dec = decrement_stack();
-        struct code_t *code = perform_op(STACK_PTR, OP_DEREFERENCE, STACK_PTR, NULL);
-        struct code_t *inc = increment_stack();
+        // Take address and convert to value
 
-        dec->next = code;
-        code->next = inc;
-
-        $1->cfg->last->last->next = dec;
-        $1->cfg->last->last = inc;
-
+        struct block_t *deref = perform_stack_op1(OP_DEREFERENCE);
+        $1->cfg->last = merge_blocks($1->cfg->last, deref);
         $$->cfg = $1->cfg;
 	}
  | unsigned_constant
@@ -929,6 +979,8 @@ primary : variable_access
         $$->type = PRIMARY_T_UNSIGNED_CONSTANT;
         $$->data.un = $1;
         $$->expr = $1->expr;
+
+        // Push value to stack
 
         char *buffer = (char*) malloc(sizeof(char) * 20);
         snprintf(buffer, 20, "%d", $1->ui);
@@ -949,7 +1001,7 @@ primary : variable_access
         $$->data.fd = $1;
         $$->expr = NULL;
 
-        // TODO - how to handle this?
+        // TODO
 
 	}
  | LPAREN expression RPAREN
@@ -961,6 +1013,7 @@ primary : variable_access
         $$->data.e = $2;
         $$->expr = $2->expr;
 
+        // Keep the cfg for the expression
         $$->cfg = $2->cfg;
 	}
  | NOT primary
@@ -972,16 +1025,8 @@ primary : variable_access
         $$->data.p.next = $2;
         // TODO: $$->expr
 
-        struct code_t *dec = decrement_stack();
-        struct code_t *code = perform_op(STACK_PTR, OP_NOT, STACK_PTR, NULL);
-        struct code_t *inc = increment_stack();
-
-        dec->next = code;
-        code->next = inc;
-
-        $2->cfg->last->last->next = dec;
-        $2->cfg->last->last = inc;
-
+        struct block_t *do_not = perform_stack_op1(OP_NOT);
+        $2->cfg->last = merge_blocks($2->cfg->last, do_not);
         $$->cfg = $2->cfg;
 	}
  ;

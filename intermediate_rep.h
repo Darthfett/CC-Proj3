@@ -1,7 +1,7 @@
 #ifndef _INTERMEDIATE_REP_H_
 #define _INTERMEDIATE_REP_H_
 
-extern const char * const TOP_OF_TACK;
+extern const char * const TOP_OF_STACK;
 extern const char * const STACK_PTR;
 extern const char * const FRAME_PTR;
 
@@ -25,6 +25,7 @@ struct code_t {
 struct block_t {
     struct code_t *first;
     struct code_t *last;
+    int has_parent;
 };
 
 struct cfg_t {
@@ -35,6 +36,19 @@ struct cfg_t {
 /* End structure definitions */
 
 /* Function definitions */
+
+struct code_t* new_code();
+struct block_t* new_block();
+struct cfg_t* new_cfg();
+
+struct block_t* perform_stack_op1(int op);
+struct block_t* perform_stack_op2(int op);
+
+struct block_t* merge_blocks(struct block_t *b1, struct block_t *b2);
+struct block_t* chain_blocks(struct block_t *b1, struct block_t *b2);
+int can_merge_blocks(struct block_t *b1, struct block_t *b2);
+
+char* mem_at(const char * const location);
 
 struct code_t* increment_stack(void);
 struct code_t* decrement_stack(void);

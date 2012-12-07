@@ -447,6 +447,8 @@ struct program_t {
 
 #define OP_DEREFERENCE 4
 
+#define OP_NEGATE 6
+
 #define OP_NOT 8
 
 #define OP_OR 10
