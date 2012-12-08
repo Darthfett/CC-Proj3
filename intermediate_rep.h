@@ -37,10 +37,11 @@ struct cfg_t {
 
 /* Function definitions */
 
-struct code_t* new_code();
-struct block_t* new_block();
-struct cfg_t* new_cfg();
+struct code_t* new_code(void);
+struct block_t* new_block(void);
+struct cfg_t* new_cfg(void);
 
+struct block_t* perform_assign_stmnt(void);
 struct block_t* perform_stack_op1(int op);
 struct block_t* perform_stack_op2(int op);
 

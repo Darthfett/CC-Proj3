@@ -513,6 +513,8 @@ statement_sequence : statement
 
         $$->s = $1;
         $$->next = NULL;
+
+        $$->cfg = $1->cfg;
 	}
  | statement_sequence semicolon statement
 	{
@@ -521,6 +523,18 @@ statement_sequence : statement
 
         $$->s = $3;
         $$->next = $1;
+
+        if (can_merge_blocks($1->cfg->last, $3->cfg->first)) {
+            merge_blocks($1->cfg->last, $3->cfg->first);
+        } else {
+            chain_blocks($1->cfg->last, $3->cfg->first);
+        }
+
+        struct cfg_t *cfg = new_cfg();
+        cfg->first = $1->cfg->first;
+        cfg->last = $3->cfg->last;
+
+        $$->cfg = cfg;
 	}
  ;
 
@@ -532,6 +546,8 @@ statement : assignment_statement
         $$->data.as = $1;
         $$->type = STATEMENT_T_ASSIGNMENT;
         $$->line_number = line_number;
+
+        $$->cfg = $1->cfg;
 	}
  | compound_statement
 	{
@@ -541,6 +557,8 @@ statement : assignment_statement
         $$->data.ss = $1;
         $$->type = STATEMENT_T_SEQUENCE;
         $$->line_number = line_number;
+
+        $$->cfg = $1->cfg;
 	}
  | if_statement
 	{
@@ -550,6 +568,8 @@ statement : assignment_statement
         $$->data.is = $1;
         $$->type = STATEMENT_T_IF;
         $$->line_number = line_number;
+
+        $$->cfg = $1->cfg;
 	}
  | while_statement
 	{
@@ -559,6 +579,8 @@ statement : assignment_statement
         $$->data.ws = $1;
         $$->type = STATEMENT_T_WHILE;
         $$->line_number = line_number;
+
+        $$->cfg = $1->cfg;
 	}
  | print_statement
         {
@@ -568,6 +590,8 @@ statement : assignment_statement
         $$->data.ps = $1;
         $$->type = STATEMENT_T_PRINT;
         $$->line_number = line_number;
+
+        $$->cfg = $1->cfg;
         }
  ;
 
@@ -599,6 +623,17 @@ assignment_statement : variable_access ASSIGNMENT expression
         $$->va = $1;
         $$->e = $3;
         $$->oe = NULL;
+
+        merge_blocks($1->cfg->last, $3->cfg->first);
+
+        struct block_t *block = perform_assign_stmnt();
+
+        block = merge_blocks($3->cfg->last, block);
+
+        $$->cfg = new_cfg();
+
+        $$->cfg->first = $1->cfg->first;
+        $$->cfg->last = block;
 	}
  | variable_access ASSIGNMENT object_instantiation
 	{
@@ -608,6 +643,17 @@ assignment_statement : variable_access ASSIGNMENT expression
         $$->va = $1;
         $$->e = NULL;
         $$->oe = $3;
+
+        merge_blocks($1->cfg->last, $3->cfg->first);
+
+        struct block_t *block = perform_assign_stmnt();
+
+        block = merge_blocks($3->cfg->last, block);
+
+        $$->cfg = new_cfg();
+
+        $$->cfg->first = $1->cfg->first;
+        $$->cfg->last = block;
 	}
  ;
 

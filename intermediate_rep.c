@@ -11,7 +11,7 @@ const int TEMPORARY_START = 10;
 int avail_temporaries_count;
 int *avail_temporaries;
 
-struct code_t* new_code()
+struct code_t* new_code(void)
 {
     struct code_t *new = (struct code_t*) malloc(sizeof(struct code_t));
     new->lhs = NULL;
@@ -25,7 +25,7 @@ struct code_t* new_code()
     return new;
 }
 
-struct block_t* new_block()
+struct block_t* new_block(void)
 {
     struct block_t *new = (struct block_t*) malloc(sizeof(struct block_t));
     new->first = new->last = NULL;
@@ -33,12 +33,43 @@ struct block_t* new_block()
 
     return new;
 }
-struct cfg_t* new_cfg()
+struct cfg_t* new_cfg(void)
 {
     struct cfg_t *new = (struct cfg_t*) malloc(sizeof(struct cfg_t));
     new->first = new->last = NULL;
 
     return new;
+}
+
+struct block_t* perform_assign_stmnt(void)
+{
+    struct block_t *block = new_block();
+
+    // Get temp registers
+    char *r1 = get_temporary();
+    char *r2 = get_temporary();
+
+    // Generate assignment code
+    struct code_t *dec = decrement_stack();
+    struct code_t *get_rhs = perform_op(r2, OP_ASSIGNMENT, mem_at(STACK_PTR), NULL);
+    struct code_t *dec2 = decrement_stack();
+    struct code_t *get_lhs = perform_op(r1, OP_ASSIGNMENT, mem_at(STACK_PTR), NULL);
+    struct code_t *assign = perform_op(r1, OP_ASSIGNMENT, mem_at(r2), NULL);
+
+    // Release temp registers
+    release_temporary(r1);
+    release_temporary(r2);
+
+    // Chain together block and statements
+    block->first = dec;
+    block->last = assign;
+
+    dec->next = get_rhs;
+    get_rhs->next = dec2;
+    dec2->next = get_lhs;
+    get_lhs->next = assign;
+
+    return block;
 }
 
 struct block_t* perform_stack_op1(int op)
