@@ -325,6 +325,7 @@ struct variable_access_t{
 struct object_instantiation_t{
   char *id;
   struct actual_parameter_list_t *apl;
+  struct cfg_t *cfg;
 };
 
 struct assignment_statement_t{
@@ -438,6 +439,7 @@ struct program_t {
 #define CODE_ASSIGNMENT 100
 #define CODE_BRANCH 101
 #define CODE_JUMP 102
+#define CODE_DUMMY 103
 
 // Operation codes (starting with arbitrary numbers)
 #define OP_ASSIGNMENT 1
