@@ -1,9 +1,10 @@
 #ifndef _INTERMEDIATE_REP_H_
 #define _INTERMEDIATE_REP_H_
 
-extern const char * const TOP_OF_STACK;
 extern const char * const STACK_PTR;
 extern const char * const FRAME_PTR;
+extern const char * const REGISTER_PREFIX;
+extern const char * const REGISTER_FORMAT;
 
 /* Structure definitions */
 
@@ -36,6 +37,8 @@ struct cfg_t {
 /* End structure definitions */
 
 /* Function definitions */
+
+const char * const get_top_of_stack(void);
 
 void print_cfg(struct cfg_t *cfg);
 void print_block(struct block_t *block);

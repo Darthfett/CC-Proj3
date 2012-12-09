@@ -1,13 +1,13 @@
-PROGRAM Basic;
+PROGRAM Basic; 
 
 CLASS Basic
 BEGIN
 
-VAR a : integer;
+VAR abc : integer;
 
 FUNCTION MersennePrimes;
 BEGIN
-	a = 1
+    abc := 1
 END
 
 END

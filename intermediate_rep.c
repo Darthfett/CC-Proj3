@@ -1,12 +1,13 @@
 #include "intermediate_rep.h"
 #include "shared.h"
 
-const char * const TOP_OF_STACK = "__RESERVED_TOP_OF_STACK";
-const char * const STACK_PTR = "__RESERVED_STACK_PTR";
-const char * const FRAME_PTR = "__RESERVED_FRAME_PTR";
+const char * const STACK_PTR = "$sp";
+const char * const FRAME_PTR = "$fp";
+const char * const REGISTER_PREFIX = "$r";
+const char * const REGISTER_FORMAT = "$r%d";
 
 const int TEMPORARY_COUNT = 3;
-const int TEMPORARY_START = 10;
+const int TEMPORARY_START = 0;
 
 int avail_temporaries_count;
 int *avail_temporaries;
@@ -14,6 +15,11 @@ int *avail_temporaries;
 struct block_t **seen_blocks;
 int seen_blocks_count = 0;
 int seen_blocks_size = 20;
+
+const char * const get_top_of_stack(void)
+{
+    return mem_at(STACK_PTR);
+}
 
 int seen_block(struct block_t *block)
 {
@@ -53,59 +59,60 @@ void clear_blocks_seen(void)
 
 void print_code(struct code_t *code)
 {
+    const char * const lhs = code->lhs;
     switch(code->type) {
     case CODE_ASSIGNMENT:
         switch(code->op) {
             case OP_ASSIGNMENT:
-                printf("%s = %s;\n", code->lhs, code->op1);
+                printf("%s = %s;\n", lhs, code->op1);
                 break;
             case OP_DEREFERENCE:
-                printf("%s = *%s;\n", code->lhs, code->op1);
+                printf("%s = *%s;\n", lhs, code->op1);
                 break;
             case OP_NEGATE:
-                printf("%s = -%s;\n", code->lhs, code->op1);
+                printf("%s = -%s;\n", lhs, code->op1);
                 break;
             case OP_NOT:
-                printf("%s = !%s;\n", code->lhs, code->op1);
+                printf("%s = !%s;\n", lhs, code->op1);
                 break;
             case OP_OR:
-                printf("%s = %s || %s;\n", code->lhs, code->op1, code->op2);
+                printf("%s = %s || %s;\n", lhs, code->op1, code->op2);
                 break;
             case OP_AND:
-                printf("%s = %s && %s;\n", code->lhs, code->op1, code->op2);
+                printf("%s = %s && %s;\n", lhs, code->op1, code->op2);
                 break;
             case OP_PLUS:
-                printf("%s = %s + %s;\n", code->lhs, code->op1, code->op2);
+                printf("%s = %s + %s;\n", lhs, code->op1, code->op2);
                 break;
             case OP_MINUS:
-                printf("%s = %s - %s;\n", code->lhs, code->op1, code->op2);
+                printf("%s = %s - %s;\n", lhs, code->op1, code->op2);
                 break;
             case OP_STAR:
-                printf("%s = %s * %s;\n", code->lhs, code->op1, code->op2);
+                printf("%s = %s * %s;\n", lhs, code->op1, code->op2);
                 break;
             case OP_SLASH:
-                printf("%s = %s / %s;\n", code->lhs, code->op1, code->op2);
+                printf("%s = %s / %s;\n", lhs, code->op1, code->op2);
                 break;
             case OP_MOD:
-                printf("%s = %s %% %s;\n", code->lhs, code->op1, code->op2);
+                printf("%s = %s %% %s;\n", lhs, code->op1, code->op2);
                 break;
             case OP_EQUAL:
-                printf("%s = %s == %s;\n", code->lhs, code->op1, code->op2);
+                printf("%s = %s == %s;\n", lhs, code->op1, code->op2);
                 break;
             case OP_NOTEQUAL:
-                printf("%s = %s != %s;\n", code->lhs, code->op1, code->op2);
+                printf("%s = %s != %s;\n", lhs, code->op1, code->op2);
                 break;
             case OP_LT:
-                printf("%s = %s < %s;\n", code->lhs, code->op1, code->op2);
+                printf("%s = %s < %s;\n", lhs, code->op1, code->op2);
                 break;
             case OP_GT:
-                printf("%s = %s > %s;\n", code->lhs, code->op1, code->op2);
+                printf("%s = %s > %s;\n", lhs, code->op1, code->op2);
                 break;
             case OP_LE:
-                printf("%s = %s <= %s;\n", code->lhs, code->op1, code->op2);
+                printf("%s = %s <= %s;\n", lhs, code->op1, code->op2);
                 break;
             case OP_GE:
-                printf("%s = %s >= %s;\n", code->lhs, code->op1, code->op2);
+                printf("%s = %s >= %s;\n", lhs, code->op1, code->op2);
                 break;
             default:
                 printf("ERROR: Invalid op %d for code.\n", code->op);
@@ -146,15 +153,17 @@ void print_block(struct block_t *block)
     while(next != NULL) {
         print_code(next);
         if (next->next == NULL) {
-            printf("BLOCK END\n");
             if (next->type == CODE_BRANCH) {
+                printf("BLOCK END\n");
                 print_block(next->next_b1);
                 print_block(next->next_b2);
             } else if (next->next_b1 != NULL) {
                 printf("jump %p;\n", next->next_b1);
+                printf("BLOCK END\n");
                 print_block(next->next_b1);
             } else {
                 printf("jump exit;\n");
+                printf("BLOCK END\n");
             }
             break;
         }
@@ -246,7 +255,7 @@ struct block_t* perform_assign_stmnt(void)
     struct code_t *get_rhs = perform_op(r2, OP_ASSIGNMENT, mem_at(STACK_PTR), NULL);
     struct code_t *dec2 = decrement_stack();
     struct code_t *get_lhs = perform_op(r1, OP_ASSIGNMENT, mem_at(STACK_PTR), NULL);
-    struct code_t *assign = perform_op(r1, OP_ASSIGNMENT, mem_at(r2), NULL);
+    struct code_t *assign = perform_op(mem_at(r1), OP_ASSIGNMENT, mem_at(r2), NULL);
 
     // Release temp registers
     release_temporary(r1);
@@ -296,8 +305,8 @@ struct block_t* perform_stack_op2(int op)
     struct code_t *get_op1 = perform_op(r2, OP_ASSIGNMENT, mem_at(STACK_PTR), NULL);
     struct code_t *dec2 = decrement_stack();
     struct code_t *get_op2 = perform_op(r1, OP_ASSIGNMENT, mem_at(STACK_PTR), NULL);
-    struct code_t *do_op = perform_op(r1, op, mem_at(r1), mem_at(r2));
-    struct code_t *push = perform_op(STACK_PTR, OP_ASSIGNMENT, mem_at(r1), NULL);
+    struct code_t *do_op = perform_op(r1, op, r1, r2);
+    struct code_t *push = perform_op(STACK_PTR, OP_ASSIGNMENT, r1, NULL);
     struct code_t *inc = increment_stack();
 
     // Release temp registers
@@ -398,7 +407,7 @@ char* get_temporary(void)
     }
     avail_temporaries_count--;
     char *buffer = (char*) malloc(sizeof(char) * 20);
-    snprintf(buffer, 20, "__RESERVED_TEMP_%d", avail_temporaries[avail_temporaries_count]);
+    snprintf(buffer, 20, REGISTER_FORMAT, avail_temporaries[avail_temporaries_count]);
 
     return buffer;
 }
@@ -412,7 +421,7 @@ void release_temporary(char *temporary)
     }
 
     char *temp_num = temporary;
-    temp_num += strlen("__RESERVED_TEMP_");
+    temp_num += strlen(REGISTER_PREFIX);
     int temp = atoi(temp_num);
 
     avail_temporaries[avail_temporaries_count] = temp;
@@ -427,7 +436,7 @@ struct block_t* pop_from_stack(const char * const out)
 
     struct code_t *decrement = decrement_stack();
 
-    struct code_t *pop = perform_op(out, OP_ASSIGNMENT, TOP_OF_STACK, NULL);
+    struct code_t *pop = perform_op(out, OP_ASSIGNMENT, get_top_of_stack(), NULL);
 
     decrement->next = pop;
 
@@ -441,7 +450,7 @@ struct block_t* push_to_stack(const char * const source)
 {
     struct block_t *block = new_block();
 
-    struct code_t *push = perform_op(TOP_OF_STACK, OP_ASSIGNMENT, source, NULL);
+    struct code_t *push = perform_op(get_top_of_stack(), OP_ASSIGNMENT, source, NULL);
 
     struct code_t *increment = increment_stack();
 

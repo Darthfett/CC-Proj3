@@ -516,6 +516,9 @@ statement_part : compound_statement
 	{
 	// printf("statement_part : compound_statement \n");
         $$ = $1;
+
+        print_cfg($1->cfg);
+
 	}
  ;
 
@@ -746,6 +749,13 @@ variable_access : identifier
         $$->data.id = $1;
         // TODO: $$->recordname
         // TODO: $$->expr
+
+        struct cfg_t *cfg = new_cfg();
+        struct block_t *push = push_to_stack($1);
+
+        cfg->first = cfg->last = push;
+
+        $$->cfg = cfg;
 	}
  | indexed_variable
 	{

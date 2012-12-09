@@ -23,9 +23,11 @@ void exit_on_errors()
 }
 
 /*
+    -- Casey commenting this out, as it does not compile.
+
 	VARIABLE ACCESS CODE (I don't know where to put this, so I'll put it here.)
 */
-
+/*
 struct class_list_t* find_class(char* c_id)
 {
 	struct class_list_t *cl = NULL;
@@ -37,8 +39,12 @@ struct class_list_t* find_class(char* c_id)
 	
 	return NULL;
 }
-
+*/
 // Make sure this isn't called in cases where an int or a bool could be the case
+
+/*
+    -- Casey commenting this out, as it does not compile.
+
 struct type_denoter_t* create_temp_class_type_denoter(char* id)
 {
 	struct type_denoter_t* td = (struct type_denoter_t*)malloc(sizeof(struct type_denoter_t));
@@ -47,6 +53,10 @@ struct type_denoter_t* create_temp_class_type_denoter(char* id)
 	td->name = id;
 	return td;
 }
+*/
+
+/*
+    -- Casey commenting this out, as it does not compile.
 
 void find_cfv(
 	char* c_id,
@@ -207,6 +217,10 @@ void find_cfv(
 		}
 	}
 }
+*/
+
+/*
+    -- Casey commenting this out, as it does not compile.
 
 struct function_declaration_t* find_function(struct class_list_t *cl, char* f_id)
 {
@@ -222,6 +236,10 @@ struct function_declaration_t* find_function(struct class_list_t *cl, char* f_id
 		}
 	}
 }
+*/
+
+/*
+    -- Casey commenting this out, as it does not compile.
 
 void create_function_use_code(char* c_id, char* f_id, struct function_designator_t* fdes, struct type_denoter_t** type)
 {
@@ -242,6 +260,7 @@ void create_function_use_code(char* c_id, char* f_id, struct function_designator
 		create_expr_code(apl->ap->e1);
 	}
 }
+*/
 
 // HOW TO CALL create_variable_access_code:
 // node = first variable access
@@ -249,6 +268,9 @@ void create_function_use_code(char* c_id, char* f_id, struct function_designator
 // f_id = name of current function
 // type = NULL
 // offset = 0
+/*
+    -- Casey commenting this out, as it does not compile.
+
 void create_variable_access_code(
 	struct variable_access_t* node,
 	char* c_id,
@@ -322,7 +344,7 @@ void create_variable_access_code(
 		}
 	}
 }
-
+*/
 
 /* This is the data structure we are left with (the parse tree) after
    yyparse() is done . */

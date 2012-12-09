@@ -3,24 +3,24 @@ PROGRAM Basic;
 CLASS Basic
 BEGIN
 
-VAR a, b, c : integer;
-	p, q : boolean;
+VAR abc, def, ghi : integer;
+	pq, rs : boolean;
 
 FUNCTION MersennePrimes;
 BEGIN
-	a = 2 + 3 * 5 mod 7;
-	b = a + a * a mod a;
-	c = 3000 / 3;
+	abc := 2 + 3 * 5 mod 7;
+	def := abc + abc * abc mod abc;
+	ghi := 3000 / 3;
 	
-	a = 1;
-	b = 2;
+	abc := 1;
+	def := 2;
 	
-	p = a < c;
-	q = a > c;
-	p = a <= c;
-	q = a >= c;
-	p = a <> c;
-	q = a == c
+	pq := abc < ghi;
+	rs := abc > ghi;
+	pq := abc <= ghi;
+	rs := abc >= ghi;
+	pq := abc <> ghi;
+	rs := abc = ghi
 	
 END
 
