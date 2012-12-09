@@ -602,6 +602,23 @@ while_statement : WHILE boolean_expression DO statement
 
         $$->e = $2;
         $$->s = $4;
+
+        $$->cfg = new_cfg();
+
+        struct block_t *dummy_block = new_dummy_block();
+
+        struct block_t *branch = perform_branch($4->cfg->first, dummy_block);
+
+        $2->cfg->last = merge_blocks($2->cfg->last, branch);
+
+        // Chain expr block to end of statement
+
+        chain_blocks($4->cfg->last, $2->cfg->first);
+        $2->cfg->first->has_parent = 1;
+
+        // Assign while statement cfg
+        $$->cfg->first = $2->cfg->first;
+        $$->cfg->last = dummy_block;
         }
  ;
 
@@ -615,31 +632,12 @@ if_statement : IF boolean_expression THEN statement ELSE statement
 
         $$->cfg = new_cfg();
 
-        // Make the branching code
-        char *r1 = get_temporary();
+        struct block_t *branch = perform_branch($4->cfg->first, $6->cfg->first);
 
-        struct code_t *dec = decrement_stack();
-        struct code_t *pop = perform_op(r1, OP_ASSIGNMENT, mem_at(STACK_PTR), NULL);
-        struct code_t *branch = new_code();
-        branch->type = CODE_BRANCH;
-        branch->op1 = mem_at(r1);
-        branch->next_b1 = $4->cfg->first;
-        branch->next_b2 = $6->cfg->first;
-
-        release_temporary(r1);
-
-        // Chain code to end of boolexpr
-        dec->next = pop;
-        pop->next = branch;
-
-        $2->cfg->last->last->next = dec;
-        $2->cfg->last->last = branch;
+        $2->cfg->last = merge_blocks($2->cfg->last, branch);
 
         // Chain dummy block to end of statements
-        struct block_t *dummy_block = new_block();
-        struct code_t *dummy_code = new_code();
-        dummy_code->type = CODE_DUMMY;
-        dummy_block->first = dummy_block->last = dummy_code;
+        struct block_t *dummy_block = new_dummy_block();
 
         chain_blocks($4->cfg->last, dummy_block);
         chain_blocks($6->cfg->last, dummy_block);

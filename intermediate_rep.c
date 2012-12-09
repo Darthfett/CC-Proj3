@@ -11,6 +11,16 @@ const int TEMPORARY_START = 10;
 int avail_temporaries_count;
 int *avail_temporaries;
 
+struct block_t* new_dummy_block(void)
+{
+    struct block_t *dummy = new_block();
+    struct code_t *noop = new_code();
+    noop->type = CODE_DUMMY;
+    dummy->first = dummy->last = noop;
+
+    return dummy;
+}
+
 struct code_t* new_code(void)
 {
     struct code_t *new = (struct code_t*) malloc(sizeof(struct code_t));
@@ -39,6 +49,32 @@ struct cfg_t* new_cfg(void)
     new->first = new->last = NULL;
 
     return new;
+}
+
+struct block_t* perform_branch(struct block_t *b1, struct block_t *b2)
+{
+    struct block_t *block = new_block();
+
+    // Make the branching code
+    char *r1 = get_temporary();
+
+    struct code_t *dec = decrement_stack();
+    struct code_t *pop = perform_op(r1, OP_ASSIGNMENT, mem_at(STACK_PTR), NULL);
+    struct code_t *branch = new_code();
+    branch->type = CODE_BRANCH;
+    branch->op1 = mem_at(r1);
+    branch->next_b1 = b1;
+    branch->next_b2 = b2;
+
+    release_temporary(r1);
+
+    dec->next = pop;
+    pop->next = branch;
+
+    block->first = dec;
+    block->last = branch;
+
+    return block;
 }
 
 struct block_t* perform_assign_stmnt(void)
