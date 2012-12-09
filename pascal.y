@@ -188,6 +188,11 @@ class_list : class_list class_identification PBEGIN class_block END
 	$$->next = $1;
 	$$->ci = $2;
 	$$->cb = $4;
+
+        struct hash_table_t *class_table = get_class_table();
+        struct ht_item_t *class_item = (struct ht_item_t*) malloc(sizeof(struct ht_item_t));
+        class_item->value = (void*) $$;
+        insert_item(class_table, $2->id, class_item);
 	}
  | class_identification PBEGIN class_block END
 	{
@@ -197,6 +202,11 @@ class_list : class_list class_identification PBEGIN class_block END
 	$$->next = NULL;
 	$$->ci = $1;
 	$$->cb = $3;
+
+        struct hash_table_t *class_table = get_class_table();
+        struct ht_item_t *class_item = (struct ht_item_t*) malloc(sizeof(struct ht_item_t));
+        class_item->value = (void*) $$;
+        insert_item(class_table, $1->id, class_item);
 	}
  ;
 
@@ -238,16 +248,25 @@ type_denoter : array_type
         $$->type = TYPE_DENOTER_T_ARRAY_TYPE; 
         // TODO: $$->name
         $$->data.at = $1;
+
+        $$->size = ($1->r->max->ui - $1->r->min->ui) * $1->td->size;
 	}
  | identifier
 	{
-	
 	// printf("type_denoter : identifier \n");
         $$ = (struct type_denoter_t*) malloc(sizeof(struct type_denoter_t));
 
-        // TODO - determine if identifier is a class, or base type (e.g. integer or boolean)
-	// TODO: $$->type
-        // TODO: $$->data
+        struct hash_table_t *class_table = get_class_table();
+        struct ht_item_t *class_item = get_hashtable_item(class_table, $1);
+
+        if (class_item == NULL) {
+            // Class is either not parsed yet, or a base type.  Forward references are not supported, so assuming base type.
+            $$->type = TYPE_DENOTER_BASE_TYPE;
+            $$->data.name = $$->name = $1;
+        } else {
+            $$->type = TYPE_DENOTER_CLASS_TYPE;
+            $$->data.cl = (struct class_list_t*) class_item->value;
+        }
 	}
  ;
 

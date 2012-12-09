@@ -12,8 +12,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-
-
 struct ht_item_t {
     void *value; // data that is used for this scope or id.
     int value_type; // this is the type that the void * value represents
@@ -36,6 +34,7 @@ struct hash_table_t {
  * ----------------------------------------------------------------
  */
 
+struct hash_table_t* get_class_table(void);
 int hash(struct hash_table_t *hashtable, char *key);
 struct hash_table_t* new_hash_table(int size);
 struct ht_item_t* get_hashtable_item(struct hash_table_t *hashtable, char *key);

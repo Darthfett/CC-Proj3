@@ -108,7 +108,8 @@ struct type_denoter_t{
     struct array_type_t *at;
     struct class_list_t *cl;
     char *id;
-  }data;
+  } data;
+  int size;
 };
 
 /* ---------------------------------------------------------------- */

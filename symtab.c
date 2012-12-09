@@ -9,6 +9,13 @@
 #include "symtab.h"
 #include "shared.h"
 
+struct hash_table_t *class_table;
+
+struct hash_table_t* get_class_table(void)
+{
+    return class_table;
+}
+
 struct hash_table_t* new_hash_table(int size)
 {
     struct hash_table_t *table;
@@ -113,5 +120,5 @@ struct ht_item_t *remove_item(struct hash_table_t* table, char *key)
  */
 void symtab_init(void)
 {
-
+    class_table = new_hash_table(10);
 }
