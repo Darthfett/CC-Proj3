@@ -11,6 +11,162 @@ const int TEMPORARY_START = 10;
 int avail_temporaries_count;
 int *avail_temporaries;
 
+struct block_t **seen_blocks;
+int seen_blocks_count = 0;
+int seen_blocks_size = 20;
+
+int seen_block(struct block_t *block)
+{
+    int i;
+    for (i = 0; i < seen_blocks_count; i++) {
+        if (seen_blocks[i] == block) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+void mark_block_seen(struct block_t *block)
+{
+    /* Check if there is room for the block */
+    if (seen_blocks_size == seen_blocks_count) {
+        /* Not enough room to add block -- double the size */
+        struct block_t **new_seen_blocks = (struct block_t**) malloc(sizeof(struct block_t*) * seen_blocks_size * 2);
+        memcpy(new_seen_blocks, seen_blocks, sizeof(struct block_t*) *seen_blocks_size);
+        free(seen_blocks);
+        seen_blocks = new_seen_blocks;
+        seen_blocks_size *= 2;
+    }
+
+    /* Add block to seen blocks */
+    seen_blocks[seen_blocks_count] = block;
+    seen_blocks_count++;
+}
+
+void clear_blocks_seen(void)
+{
+    free(seen_blocks);
+    seen_blocks_count = 0;
+    seen_blocks = (struct block_t**) malloc(sizeof(struct block_t*) * seen_blocks_size);
+}
+
+
+void print_code(struct code_t *code)
+{
+    switch(code->type) {
+    case CODE_ASSIGNMENT:
+        switch(code->op) {
+            case OP_ASSIGNMENT:
+                printf("%s = %s;\n", code->lhs, code->op1);
+                break;
+            case OP_DEREFERENCE:
+                printf("%s = *%s;\n", code->lhs, code->op1);
+                break;
+            case OP_NEGATE:
+                printf("%s = -%s;\n", code->lhs, code->op1);
+                break;
+            case OP_NOT:
+                printf("%s = !%s;\n", code->lhs, code->op1);
+                break;
+            case OP_OR:
+                printf("%s = %s || %s;\n", code->lhs, code->op1, code->op2);
+                break;
+            case OP_AND:
+                printf("%s = %s && %s;\n", code->lhs, code->op1, code->op2);
+                break;
+            case OP_PLUS:
+                printf("%s = %s + %s;\n", code->lhs, code->op1, code->op2);
+                break;
+            case OP_MINUS:
+                printf("%s = %s - %s;\n", code->lhs, code->op1, code->op2);
+                break;
+            case OP_STAR:
+                printf("%s = %s * %s;\n", code->lhs, code->op1, code->op2);
+                break;
+            case OP_SLASH:
+                printf("%s = %s / %s;\n", code->lhs, code->op1, code->op2);
+                break;
+            case OP_MOD:
+                printf("%s = %s %% %s;\n", code->lhs, code->op1, code->op2);
+                break;
+            case OP_EQUAL:
+                printf("%s = %s == %s;\n", code->lhs, code->op1, code->op2);
+                break;
+            case OP_NOTEQUAL:
+                printf("%s = %s != %s;\n", code->lhs, code->op1, code->op2);
+                break;
+            case OP_LT:
+                printf("%s = %s < %s;\n", code->lhs, code->op1, code->op2);
+                break;
+            case OP_GT:
+                printf("%s = %s > %s;\n", code->lhs, code->op1, code->op2);
+                break;
+            case OP_LE:
+                printf("%s = %s <= %s;\n", code->lhs, code->op1, code->op2);
+                break;
+            case OP_GE:
+                printf("%s = %s >= %s;\n", code->lhs, code->op1, code->op2);
+                break;
+            default:
+                printf("ERROR: Invalid op %d for code.\n", code->op);
+                error_flag = 1;
+                break;
+        }
+        break;
+    case CODE_BRANCH:
+        printf("branch %s, %p, %p;\n", code->op1, code->next_b1, code->next_b2);
+        break;
+    case CODE_JUMP:
+        printf("jump %s, %p;\n", code->op1, code->next_b1);
+        break;
+    case CODE_DUMMY:
+        printf(";\n");
+        break;
+    }
+}
+
+void print_block(struct block_t *block)
+{
+    if (block == NULL) {
+        printf("ERROR: print NULL block\n");
+        error_flag = 1;
+        return;
+    }
+
+    if (seen_block(block)) {
+        return;
+    }
+
+    mark_block_seen(block);
+
+    printf("BLOCK BEGIN %p\n", block);
+
+    struct code_t *next = block->first;
+
+    while(next != NULL) {
+        print_code(next);
+        if (next->next == NULL) {
+            printf("BLOCK END\n");
+            if (next->type == CODE_BRANCH) {
+                print_block(next->next_b1);
+                print_block(next->next_b2);
+            } else if (next->next_b1 != NULL) {
+                printf("jump %p;\n", next->next_b1);
+                print_block(next->next_b1);
+            } else {
+                printf("jump exit;\n");
+            }
+            break;
+        }
+        next = next->next;
+    }
+}
+
+void print_cfg(struct cfg_t *cfg)
+{
+    print_block(cfg->first);
+}
+
 struct block_t* new_dummy_block(void)
 {
     struct block_t *dummy = new_block();
@@ -314,6 +470,7 @@ struct code_t* perform_op(const char * const lhs, int op, const char * const op1
 void init_intermediate_rep(void)
 {
     int i;
+    seen_blocks = (struct block_t**) malloc(sizeof(struct block_t*) * seen_blocks_size);
 
     avail_temporaries_count = TEMPORARY_COUNT;
     avail_temporaries = (int*) malloc(sizeof(int) * TEMPORARY_COUNT);

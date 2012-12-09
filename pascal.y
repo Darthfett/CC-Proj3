@@ -11,6 +11,7 @@
 
 #include "shared.h"
 #include "intermediate_rep.h"
+#include "symtab.h"
 #include <assert.h>
 
   int yylex(void);
@@ -261,10 +262,10 @@ type_denoter : array_type
 
         if (class_item == NULL) {
             // Class is either not parsed yet, or a base type.  Forward references are not supported, so assuming base type.
-            $$->type = TYPE_DENOTER_BASE_TYPE;
-            $$->data.name = $$->name = $1;
+            $$->type = TYPE_DENOTER_T_IDENTIFIER;
+            $$->data.id = $$->name = $1;
         } else {
-            $$->type = TYPE_DENOTER_CLASS_TYPE;
+            $$->type = TYPE_DENOTER_T_CLASS_TYPE;
             $$->data.cl = (struct class_list_t*) class_item->value;
         }
 	}

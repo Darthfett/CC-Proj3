@@ -37,6 +37,10 @@ struct cfg_t {
 
 /* Function definitions */
 
+void print_cfg(struct cfg_t *cfg);
+void print_block(struct block_t *block);
+void print_code(struct code_t *code);
+
 struct block_t* new_dummy_block(void);
 struct code_t* new_code(void);
 struct block_t* new_block(void);
