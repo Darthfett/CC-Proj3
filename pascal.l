@@ -63,7 +63,7 @@ NQUOTE [^']
 {T}{H}{E}{N}   return(THEN);
 {V}{A}{R}   return(VAR);
 {W}{H}{I}{L}{E}   return(WHILE);
-[a-zA-Z]([a-zA-Z0-9])+  return(IDENTIFIER);
+[a-zA-Z]([a-zA-Z0-9])*  return(IDENTIFIER);
 
 ":="    return(ASSIGNMENT);
 ":"    return(COLON);
