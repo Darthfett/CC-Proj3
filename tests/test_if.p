@@ -1,30 +1,30 @@
-PROGRAM Basic;
+PROGRAM Test_if;
 
-CLASS Basic
+CLASS Test_if
 BEGIN
 
 VAR a : integer;
 	p, q : boolean;
 
-FUNCTION MersennePrimes;
+FUNCTION Test_if;
 BEGIN
-	a = 1;
+	a := 1;
 	IF (1 + 1 > a) THEN
-		a = 2
+		a := 2
 	ELSE
-		a = 3;
+		a := 3;
 		
 	IF (1 + 1 > a) THEN
 		BEGIN
-			a = 2;
+			a := 2;
 			IF (a == 2) THEN
-				a = 666
+				a := 666
 		END
 	ELSE
 		BEGIN
-			a = 3;
+			a := 3;
 			IF (a == 3) THEN
-				a = 777;
+				a := 777;
 		END
 END
 

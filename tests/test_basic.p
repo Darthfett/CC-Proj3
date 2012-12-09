@@ -5,9 +5,9 @@ BEGIN
 
 VAR a : integer;
 
-FUNCTION MersennePrimes;
+FUNCTION Basic;
 BEGIN
-	a = 1
+	a := 1
 END
 
 END
