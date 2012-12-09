@@ -26,6 +26,8 @@
 #define BOOLEAN_VALUE_TRUE "True"
 #define BOOLEAN_VALUE_FALSE "False"
 
+#define TRUE 1
+#define FALSE 0
 
 /* Macro that checks for a malloc error */
 #define CHECK_MEM_ERROR(name) {if (name == NULL) { \
