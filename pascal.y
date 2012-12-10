@@ -440,6 +440,7 @@ function_declaration : function_identification semicolon function_block
         $$->fb = $3;
         $$->line_number = line_number;
 
+		parsing_function_flag = FALSE;	
 	}
  | function_heading semicolon function_block
 	{
@@ -449,7 +450,7 @@ function_declaration : function_identification semicolon function_block
         $$->fh = $1;
         $$->fb = $3;
         $$->line_number = line_number;
-        }
+    }
  ;
 
 function_heading : FUNCTION identifier COLON result_type
@@ -464,6 +465,8 @@ function_heading : FUNCTION identifier COLON result_type
         current_function = (struct function_declaration_t*) malloc(sizeof(struct function_declaration_t));
         current_function->fh = $$;
         current_function->size = 0;
+
+		parsing_function_flag = TRUE;
 	}
  | FUNCTION identifier formal_parameter_list COLON result_type
 	{
@@ -498,6 +501,8 @@ function_identification : FUNCTION identifier
         current_function->fh->res = NULL;
         current_function->fh->fpsl = NULL;
         current_function->size = 0;
+
+		parsing_function_flag = TRUE;
 	}
 ;
 
