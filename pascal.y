@@ -301,7 +301,10 @@ range : unsigned_integer DOTDOT unsigned_integer
 variable_declaration_part : VAR variable_declaration_list semicolon
 	{
 	// printf("variable_declaration_part : VAR variable_declaration_list semicolon \n");
-        $$ = $2;
+        $$ = (struct variable_declaration_list_t*) malloc(sizeof(struct variable_declaration_list_t));
+        $$->vd = NULL;
+        $$->next = $2;
+        $$->size = $2->size;
         current_variables = $$;
         if (parsing_function_flag) {
             current_function->fb = (struct function_block_t*) malloc(sizeof(struct function_block_t));
@@ -311,8 +314,15 @@ variable_declaration_part : VAR variable_declaration_list semicolon
  |
 	{
 	// printf("variable_declaration_part :  \n");
-        $$ = NULL;
+        $$ = (struct variable_declaration_list_t*) malloc(sizeof(struct variable_declaration_list_t));
+        $$->vd = NULL;
+        $$->next = NULL;
+        $$->size = 0;
         current_variables = $$;
+        if (parsing_function_flag) {
+            current_function->fb = (struct function_block_t*) malloc(sizeof(struct function_block_t));
+            current_function->fb->vdl = current_variables;
+        }
 	}
  ;
 
