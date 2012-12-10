@@ -12,7 +12,6 @@
 #include "shared.h"
 #include "intermediate_rep.h"
 #include "symtab.h"
-#include <assert.h>
 
   int yylex(void);
   void yyerror(const char *error);
@@ -222,6 +221,8 @@ class_identification : CLASS identifier
 
         current_class = (struct class_list_t*) malloc(sizeof(struct class_list_t));
         current_class->ci = $$;
+
+        parsing_function_flag = FALSE;	
 	}
 | CLASS identifier EXTENDS identifier
 	{
@@ -240,7 +241,7 @@ class_identification : CLASS identifier
 class_block : variable_declaration_part func_declaration_list
 	{
 	// printf("class_block : variable_declaration_part func_declaration_list \n");
-	$$ = (struct class_block_t*) malloc(sizeof(struct class_block_t));
+        $$ = current_class->cb;
 
 	$$->vdl = $1;
 	$$->fdl = $2;
@@ -302,6 +303,10 @@ variable_declaration_part : VAR variable_declaration_list semicolon
 	// printf("variable_declaration_part : VAR variable_declaration_list semicolon \n");
         $$ = $2;
         current_variables = $$;
+        if (parsing_function_flag) {
+            current_function->fb = (struct function_block_t*) malloc(sizeof(struct function_block_t));
+            current_function->fb->vdl = current_variables;
+        }
 	}
  |
 	{
@@ -359,6 +364,9 @@ func_declaration_list : func_declaration_list semicolon function_declaration
 
 	$$->fd = $1;
 	$$->next = NULL;
+
+        current_class->cb = (struct class_block_t*) malloc(sizeof(struct class_block_t));
+        current_class->cb->vdl = current_variables;
 	}
  |
 	{
@@ -367,6 +375,9 @@ func_declaration_list : func_declaration_list semicolon function_declaration
 
 	$$->next = NULL;
 	$$->fd = NULL;
+
+        current_class->cb = (struct class_block_t*) malloc(sizeof(struct class_block_t));
+        current_class->cb->vdl = current_variables;
 	}
  ;
 
@@ -439,8 +450,6 @@ function_declaration : function_identification semicolon function_block
         $$->fh = NULL;
         $$->fb = $3;
         $$->line_number = line_number;
-
-		parsing_function_flag = FALSE;	
 	}
  | function_heading semicolon function_block
 	{
@@ -450,7 +459,7 @@ function_declaration : function_identification semicolon function_block
         $$->fh = $1;
         $$->fb = $3;
         $$->line_number = line_number;
-    }
+        }
  ;
 
 function_heading : FUNCTION identifier COLON result_type
@@ -466,7 +475,7 @@ function_heading : FUNCTION identifier COLON result_type
         current_function->fh = $$;
         current_function->size = 0;
 
-		parsing_function_flag = TRUE;
+        parsing_function_flag = TRUE;
 	}
  | FUNCTION identifier formal_parameter_list COLON result_type
 	{
@@ -480,6 +489,8 @@ function_heading : FUNCTION identifier COLON result_type
         current_function = (struct function_declaration_t*) malloc(sizeof(struct function_declaration_t));
         current_function->fh = $$;
         current_function->size = 0;
+
+        parsing_function_flag = TRUE;
 	}
  ;
 
@@ -502,14 +513,14 @@ function_identification : FUNCTION identifier
         current_function->fh->fpsl = NULL;
         current_function->size = 0;
 
-		parsing_function_flag = TRUE;
+        parsing_function_flag = TRUE;
 	}
 ;
 
 function_block : variable_declaration_part statement_part
 	{
 	// printf("function_block : variable_declaration_part statement_part \n");
-        $$ = (struct function_block_t*) malloc(sizeof(struct function_block_t));
+        $$ = current_function->fb;
 
         $$->vdl = $1;
         $$->ss = $2;
