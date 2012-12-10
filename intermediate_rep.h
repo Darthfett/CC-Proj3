@@ -27,6 +27,7 @@ struct block_t {
     struct code_t *first;
     struct code_t *last;
     int has_parent;
+    const char *label;
 };
 
 struct cfg_t {
@@ -38,7 +39,12 @@ struct cfg_t {
 
 /* Function definitions */
 
+struct class_list_t* get_current_class(void);
+struct func_declaration_list_t* get_current_function(void);
+
 const char * const get_top_of_stack(void);
+
+const char * const label(struct block_t *block);
 
 void print_cfg(struct cfg_t *cfg);
 void print_block(struct block_t *block);

@@ -16,9 +16,35 @@ struct block_t **seen_blocks;
 int seen_blocks_count = 0;
 int seen_blocks_size = 20;
 
+const char * const LABEL_PREFIX = "BLK_";
+const char * const LABEL_FORMAT = "BLK_%d";
+int next_block_label;
+
+struct func_declaration_list_t *current_function;
+struct class_list_t *current_class;
+
+struct class_list_t* get_current_class(void)
+{
+    return current_class;
+}
+
+struct func_declaration_list_t* get_current_function(void)
+{
+    return current_function;
+}
+
 const char * const get_top_of_stack(void)
 {
     return mem_at(STACK_PTR);
+}
+
+const char * const label(struct block_t *block)
+{
+    char *new_label = (char*) malloc(sizeof(char) * 10 + strlen(LABEL_PREFIX));
+    snprintf(new_label, 10 + strlen(LABEL_PREFIX), LABEL_FORMAT, next_block_label);
+    next_block_label++;
+
+    return new_label;
 }
 
 int seen_block(struct block_t *block)
@@ -121,10 +147,10 @@ void print_code(struct code_t *code)
         }
         break;
     case CODE_BRANCH:
-        printf("branch %s, %p, %p;\n", code->op1, code->next_b1, code->next_b2);
+        printf("branch %s, %s, %s;\n", code->op1, code->next_b1->label, code->next_b2->label);
         break;
     case CODE_JUMP:
-        printf("jump %s, %p;\n", code->op1, code->next_b1);
+        printf("jump %s;\n", code->next_b1->label);
         break;
     case CODE_DUMMY:
         printf(";\n");
@@ -146,7 +172,7 @@ void print_block(struct block_t *block)
 
     mark_block_seen(block);
 
-    printf("BLOCK BEGIN %p\n", block);
+    printf("\n%s:\n", block->label);
 
     struct code_t *next = block->first;
 
@@ -154,16 +180,13 @@ void print_block(struct block_t *block)
         print_code(next);
         if (next->next == NULL) {
             if (next->type == CODE_BRANCH) {
-                printf("BLOCK END\n");
                 print_block(next->next_b1);
                 print_block(next->next_b2);
             } else if (next->next_b1 != NULL) {
-                printf("jump %p;\n", next->next_b1);
-                printf("BLOCK END\n");
+                printf("goto %s;\n", next->next_b1->label);
                 print_block(next->next_b1);
             } else {
-                printf("jump exit;\n");
-                printf("BLOCK END\n");
+                printf("goto exit;\n");
             }
             break;
         }
@@ -205,6 +228,7 @@ struct block_t* new_block(void)
     struct block_t *new = (struct block_t*) malloc(sizeof(struct block_t));
     new->first = new->last = NULL;
     new->has_parent = 0;
+    new->label = label(new);
 
     return new;
 }
@@ -382,9 +406,9 @@ int can_merge_blocks(struct block_t *b1, struct block_t *b2)
 
 char* mem_at(const char * const location)
 {
-    int size = strlen("*") + strlen(location) + 1;
+    int size = strlen("MEM[]") + strlen(location) + 1;
     char *buffer = (char*) malloc(sizeof(char) * size);
-    snprintf(buffer, size, "*%s", location);
+    snprintf(buffer, size, "MEM[%s]", location);
     return buffer;
 }
 
@@ -483,6 +507,8 @@ void init_intermediate_rep(void)
 
     avail_temporaries_count = TEMPORARY_COUNT;
     avail_temporaries = (int*) malloc(sizeof(int) * TEMPORARY_COUNT);
+
+    next_block_label = 0;
 
     for (i = 0; i < TEMPORARY_COUNT; i++) {
         avail_temporaries[i] = i + TEMPORARY_START;

@@ -1,19 +1,20 @@
-PROGRAM Test_while;
+PROGRAM Tstwhile;
 
-CLASS Test_while
+CLASS Tstwhile
 BEGIN
 
 VAR a, b : integer;
 	p, q : boolean;
 
-FUNCTION Test_while;
+FUNCTION Tstwhile;
 BEGIN
 	a := 1;
 	b := 100;
 
-	WHILE (2 + 1 > a) THEN
+	WHILE (2 + 1 > a) DO
 	BEGIN
 		a := a + 1
 	END
+END
 END
 .
