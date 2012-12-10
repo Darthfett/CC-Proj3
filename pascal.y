@@ -717,6 +717,8 @@ object_instantiation: NEW identifier
 
         $$->id = $2;
         $$->apl = NULL;
+
+        $$->cfg = perform_object_instantiation($2, NULL);
 	}
  | NEW identifier params
 	{
@@ -725,6 +727,8 @@ object_instantiation: NEW identifier
 
         $$->id = $2;
         $$->apl = $3;
+
+        $$->cfg = perform_object_instantiation($2, $3);
 	}
 ;
 
@@ -847,10 +851,7 @@ method_designator: variable_access DOT function_designator
 params : LPAREN actual_parameter_list RPAREN 
 	{
 	// printf("params : LPAREN actual_parameter_list RPAREN  \n");
-        $$ = (struct actual_parameter_list_t*) malloc(sizeof(struct actual_parameter_list_t));
-
-        $$->ap = NULL;
-        $$->next = $2;
+        $$ = $2;
 	}
  ;
 
@@ -861,6 +862,16 @@ actual_parameter_list : actual_parameter_list comma actual_parameter
 
         $$->ap = $3;
         $$->next = $1;
+
+        $$->cfg = new_cfg();
+
+        if (can_merge_blocks($1->cfg->last, $3->cfg->first)) {
+            merge_blocks($1->cfg->last, $3->cfg->first);
+        } else {
+            chain_blocks($1->cfg->last, $3->cfg->first);
+        }
+        $$->cfg->first = $1->cfg->first;
+        $$->cfg->last = $3->cfg->last;
 	}
  | actual_parameter 
 	{
@@ -869,6 +880,8 @@ actual_parameter_list : actual_parameter_list comma actual_parameter
 
         $$->ap = $1;
         $$->next = NULL;
+
+        $$->cfg = $1->cfg;
 	}
  ;
 
@@ -880,6 +893,8 @@ actual_parameter : expression
         $$->e1 = $1;
         $$->e2 = NULL;
         $$->e3 = NULL;
+
+        $$->cfg = $1->cfg;
 	}
  | expression COLON expression
 	{
@@ -889,6 +904,16 @@ actual_parameter : expression
         $$->e1 = $1;
         $$->e2 = $3;
         $$->e3 = NULL;
+
+        $$->cfg = new_cfg();
+
+        if (can_merge_blocks($1->cfg->last, $3->cfg->first)) {
+            merge_blocks($1->cfg->last, $3->cfg->first);
+        } else {
+            chain_blocks($1->cfg->last, $3->cfg->first);
+        }
+        $$->cfg->first = $1->cfg->first;
+        $$->cfg->last = $3->cfg->last;
 	}
  | expression COLON expression COLON expression
 	{
@@ -898,6 +923,22 @@ actual_parameter : expression
         $$->e1 = $1;
         $$->e2 = $3;
         $$->e3 = $5;
+
+        $$->cfg = new_cfg();
+
+        if (can_merge_blocks($1->cfg->last, $3->cfg->first)) {
+            merge_blocks($1->cfg->last, $3->cfg->first);
+        } else {
+            chain_blocks($1->cfg->last, $3->cfg->first);
+        }
+
+        if (can_merge_blocks($3->cfg->last, $5->cfg->first)) {
+            merge_blocks($3->cfg->last, $5->cfg->first);
+        } else {
+            chain_blocks($3->cfg->last, $5->cfg->first);
+        }
+        $$->cfg->first = $1->cfg->first;
+        $$->cfg->last = $5->cfg->last;
 	}
  ;
 
@@ -930,15 +971,19 @@ expression : simple_expression
 
         // CFG
         $$->cfg = new_cfg();
-        $$->cfg->first = $1->cfg->first;
 
-        merge_blocks($1->cfg->last, $3->cfg->first);
+        if (can_merge_blocks($1->cfg->last, $3->cfg->first)) {
+            merge_blocks($1->cfg->last, $3->cfg->first);
+        } else {
+            chain_blocks($1->cfg->last, $3->cfg->first);
+        }
 
         // At this point, both ops are on the stack.
         struct block_t *block = perform_stack_op2($2);
 
         block = merge_blocks($3->cfg->last, block);
 
+        $$->cfg->first = $1->cfg->first;
         $$->cfg->last = block;
 	}
  ;

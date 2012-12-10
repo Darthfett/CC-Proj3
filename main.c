@@ -8,13 +8,13 @@
 #include "symtab.h"
 #include "intermediate_rep.h"
 
-int error_flag = 0;
+int error_flag;
 
 /* -----------------------------------------------------------------------
  * Printout on error message and exit
  * ----------------------------------------------------------------------- 
  */
-void exit_on_errors()
+void exit_on_errors(void)
 {
   if (error_flag == 1) {
     printf("Errors detected. Exiting.\n");
@@ -353,6 +353,8 @@ extern struct program_t *program;
 extern void yyparse();
 
 int main() {
+    error_flag = 0;
+
     symtab_init();
     init_intermediate_rep();
 

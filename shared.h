@@ -9,7 +9,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "intermediate_rep.h"
 
 #define K 1024
 #define MAX_ERROR_SIZE 1 * K
@@ -183,12 +182,14 @@ struct actual_parameter_t{
   struct expression_t *e1;
   struct expression_t *e2;
   struct expression_t *e3;
+  struct cfg_t *cfg;
 };
 
 struct actual_parameter_list_t;
 struct actual_parameter_list_t{
   struct actual_parameter_t *ap;
   struct actual_parameter_list_t *next;
+  struct cfg_t *cfg;
 };
 
 struct function_designator_t{
@@ -471,6 +472,33 @@ struct program_t {
 #define OP_GT 20
 #define OP_LE 21
 #define OP_GE 22
+
+struct block_t;
+
+struct code_t {
+    int type;
+
+    const char *lhs;
+    int op;
+    const char *op1;
+    const char *op2;
+
+    struct code_t *next;
+    struct block_t *next_b1;
+    struct block_t *next_b2;
+};
+
+struct block_t {
+    struct code_t *first;
+    struct code_t *last;
+    int has_parent;
+    const char *label;
+};
+
+struct cfg_t {
+    struct block_t *first;
+    struct block_t *last;
+};
 
 /* ----------------------------------------------------------------
  * Function declarations

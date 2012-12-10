@@ -1,7 +1,9 @@
 #include "intermediate_rep.h"
 #include "shared.h"
+#include "symtab.h"
 
 const char * const STACK_PTR = "$sp";
+const char * const HEAP_PTR = "$hp";
 const char * const FRAME_PTR = "$fp";
 const char * const REGISTER_PREFIX = "$r";
 const char * const REGISTER_FORMAT = "$r%d";
@@ -33,6 +35,17 @@ struct function_declaration_t* get_current_function(void)
 const char * const get_top_of_stack(void)
 {
     return mem_at(STACK_PTR);
+}
+
+struct class_list_t* lookup_class(char *classname)
+{
+    struct hash_table_t *class_table = get_class_table();
+    struct ht_item_t *class = get_hashtable_item(class_table, classname);
+    if (class == NULL) {
+        return NULL;
+    }
+
+    return (struct class_list_t*) class->value;
 }
 
 const char * const label(struct block_t *block)
@@ -235,6 +248,70 @@ struct cfg_t* new_cfg(void)
     new->first = new->last = NULL;
 
     return new;
+}
+
+struct cfg_t* perform_object_instantiation(char *classname, struct actual_parameter_list_t *params)
+{
+    struct cfg_t *cfg = new_cfg();
+    struct class_list_t *class = lookup_class(classname);
+    char *size_str = (char*) malloc(sizeof(char) * 10);
+    snprintf(size_str, 10, "%d", class->size);
+
+    if (params == NULL) {
+        struct code_t *push_ptr = perform_op(STACK_PTR, OP_ASSIGNMENT, HEAP_PTR, NULL);
+        struct code_t *inc_heap = perform_op(HEAP_PTR, OP_PLUS, mem_at(HEAP_PTR), size_str);
+        push_ptr->next = inc_heap;
+
+        struct block_t *block = new_block();
+        block->first = push_ptr;
+        block->last = inc_heap;
+
+        cfg->first = cfg->last = block;
+    } else {
+        struct code_t *push_ptr = perform_op(STACK_PTR, OP_ASSIGNMENT, HEAP_PTR, NULL);
+        struct code_t *inc_heap = perform_op(HEAP_PTR, OP_PLUS, mem_at(HEAP_PTR), size_str);
+        push_ptr->next = inc_heap;
+
+        // push all params into object memory on the heap
+        struct actual_parameter_list_t *apl = params;
+
+        struct code_t *it = inc_heap;
+
+        // The contents of the heap ptr need to be the same as the contents of the stack.
+        // This means we need to put the values onto the heap starting from the end.
+        while (apl != NULL) {
+            // Decrement heap ptr
+            it->next = perform_op(HEAP_PTR, OP_MINUS, mem_at(HEAP_PTR), "1");
+            it = it->next;
+
+            // Decrement stack ptr
+            it->next = decrement_stack();
+            it = it->next;
+
+            // Copy top of stack to heap ptr
+            it->next = perform_op(HEAP_PTR, OP_ASSIGNMENT, mem_at(STACK_PTR), NULL);
+            it = it->next;
+
+            // Next
+            apl = apl->next;
+        }
+        // move heap_ptr up to new location again.
+        it->next = perform_op(HEAP_PTR, OP_PLUS, mem_at(HEAP_PTR), size_str);
+
+        struct block_t *block = new_block();
+        block->first = push_ptr;
+        block->last = it;
+
+        if (can_merge_blocks(params->cfg->last, block)) {
+            block = merge_blocks(params->cfg->last, block);
+        } else {
+            block = chain_blocks(params->cfg->last, block);
+        }
+
+        cfg->first = params->cfg->first;
+        cfg->last = block;
+    }
+    return cfg;
 }
 
 struct block_t* perform_branch(struct block_t *b1, struct block_t *b2)
