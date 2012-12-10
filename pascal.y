@@ -318,6 +318,7 @@ variable_declaration_list : variable_declaration_list semicolon variable_declara
 
 	$$->next = $1;
 	$$->vd = $3;
+	$$->size = $1->size + $3->size;
 	}
  | variable_declaration
 	{
@@ -326,6 +327,7 @@ variable_declaration_list : variable_declaration_list semicolon variable_declara
 
 	$$->next = NULL;
 	$$->vd = $1;
+	$$->size = $1->size;
 	}
 
  ;
@@ -337,6 +339,7 @@ variable_declaration : identifier_list COLON type_denoter
 
 	$$->il = $1;
 	$$->tden = $3;
+	$$->size = $1->offset;
 	$$->line_number = line_number;
 	}
  ;
