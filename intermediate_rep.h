@@ -6,6 +6,9 @@ extern const char * const FRAME_PTR;
 extern const char * const REGISTER_PREFIX;
 extern const char * const REGISTER_FORMAT;
 
+struct function_declaration_t *current_function;
+struct class_list_t *current_class;
+
 /* Structure definitions */
 
 struct block_t;
@@ -40,7 +43,7 @@ struct cfg_t {
 /* Function definitions */
 
 struct class_list_t* get_current_class(void);
-struct func_declaration_list_t* get_current_function(void);
+struct function_declaration_t* get_current_function(void);
 
 const char * const get_top_of_stack(void);
 

@@ -184,7 +184,7 @@ identifier_list : identifier_list comma identifier
 class_list : class_list class_identification PBEGIN class_block END
 	{
 	// printf("class_list : class_list class_identification PBEGIN class_block END \n");
-	$$ = (struct class_list_t*) malloc(sizeof(struct class_list_t));
+	$$ = current_class;
 
 	$$->next = $1;
 	$$->ci = $2;
@@ -198,7 +198,7 @@ class_list : class_list class_identification PBEGIN class_block END
  | class_identification PBEGIN class_block END
 	{
 	// printf("class_list : class_identification PBEGIN class_block END \n");
-	$$ = (struct class_list_t*) malloc(sizeof(struct class_list_t));
+	$$ = current_class;
 
 	$$->next = NULL;
 	$$->ci = $1;
@@ -219,6 +219,9 @@ class_identification : CLASS identifier
 
 	$$->id = $2;
 	$$->line_number = line_number;
+
+        current_class = (struct class_list_t*) malloc(sizeof(struct class_list_t));
+        current_class->ci = $$;
 	}
 | CLASS identifier EXTENDS identifier
 	{
@@ -228,6 +231,9 @@ class_identification : CLASS identifier
 	$$->id = $2;
         $$->extend = $4;
 	$$->line_number = line_number;
+
+        current_class = (struct class_list_t*) malloc(sizeof(struct class_list_t));
+        current_class->ci = $$;
 	}
 ;
 
@@ -429,7 +435,7 @@ variable_parameter_specification : VAR identifier_list COLON identifier
 function_declaration : function_identification semicolon function_block
 	{
 	// printf("function_declaration : function_identification semicolon function_block \n");
-        $$ = (struct function_declaration_t*) malloc(sizeof(struct function_declaration_t));
+        $$ = current_function;
 
         $$->fh = NULL;
         $$->fb = $3;
@@ -439,31 +445,11 @@ function_declaration : function_identification semicolon function_block
  | function_heading semicolon function_block
 	{
 	// printf("function_declaration : function_heading semicolon function_block \n");
-        $$ = (struct function_declaration_t*) malloc(sizeof(struct function_declaration_t));
+        $$ = current_function;
 
         $$->fh = $1;
         $$->fb = $3;
         $$->line_number = line_number;
-
-        /*
-
-        This code is broken, commenting out for now
-
-	struct formal_parameter_section_list_t *fhl = $1->fpsl;
-	struct variable_declaration_list_t *fb = $3->vdl;
-	
-	struct identifier_list_t *il = $1->fpsl->fps->il;
-
-	int i = 1;
-	
-	// set the offset for the parameters
-	while (il != NULL)
-	{
-		il.offset = i;
-		i += 1;
-		il = il->next;
-	}
-        */
         }
  ;
 
@@ -475,6 +461,10 @@ function_heading : FUNCTION identifier COLON result_type
         $$->id = $2;
         $$->res = $4;
         $$->fpsl = NULL;
+
+        current_function = (struct function_declaration_t*) malloc(sizeof(struct function_declaration_t));
+        current_function->fh = $$;
+        current_function->size = 0;
 	}
  | FUNCTION identifier formal_parameter_list COLON result_type
 	{
@@ -484,6 +474,10 @@ function_heading : FUNCTION identifier COLON result_type
         $$->id = $2;
         $$->res = $5;
         $$->fpsl = $3;
+
+        current_function = (struct function_declaration_t*) malloc(sizeof(struct function_declaration_t));
+        current_function->fh = $$;
+        current_function->size = 0;
 	}
  ;
 
@@ -498,6 +492,13 @@ function_identification : FUNCTION identifier
 	{
 	// printf("function_identification : FUNCTION identifier \n");
         $$ = $2;
+
+        current_function = (struct function_declaration_t*) malloc(sizeof(struct function_declaration_t));
+        current_function->fh = (struct function_heading_t*) malloc(sizeof(struct function_heading_t));
+        current_function->fh->id = $2;
+        current_function->fh->res = NULL;
+        current_function->fh->fpsl = NULL;
+        current_function->size = 0;
 	}
 ;
 

@@ -20,15 +20,12 @@ const char * const LABEL_PREFIX = "BLK_";
 const char * const LABEL_FORMAT = "BLK_%d";
 int next_block_label;
 
-struct func_declaration_list_t *current_function;
-struct class_list_t *current_class;
-
 struct class_list_t* get_current_class(void)
 {
     return current_class;
 }
 
-struct func_declaration_list_t* get_current_function(void)
+struct function_declaration_t* get_current_function(void)
 {
     return current_function;
 }
