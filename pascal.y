@@ -300,18 +300,14 @@ range : unsigned_integer DOTDOT unsigned_integer
 variable_declaration_part : VAR variable_declaration_list semicolon
 	{
 	// printf("variable_declaration_part : VAR variable_declaration_list semicolon \n");
-        $$ = (struct variable_declaration_list_t*) malloc(sizeof(struct variable_declaration_list_t));
-
-        $$->vd = NULL;
-        $$->next = $2;
+        $$ = $2;
+        current_variables = $$;
 	}
  |
 	{
 	// printf("variable_declaration_part :  \n");
-        $$ = (struct variable_declaration_list_t*) malloc(sizeof(struct variable_declaration_list_t));
-
-	$$->vd = NULL;
-	$$->next = NULL;
+        $$ = NULL;
+        current_variables = $$;
 	}
  ;
 

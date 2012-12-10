@@ -6,6 +6,7 @@ extern const char * const FRAME_PTR;
 extern const char * const REGISTER_PREFIX;
 extern const char * const REGISTER_FORMAT;
 
+struct variable_declaration_list_t *current_variables;
 struct function_declaration_t *current_function;
 struct class_list_t *current_class;
 
